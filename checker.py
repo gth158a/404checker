@@ -1,4 +1,4 @@
-#import httplib2
+import requests
 from urllib.request import urlopen
 from bs4 import BeautifulSoup, SoupStrainer
 
@@ -18,17 +18,23 @@ else:
     #         print(link['href'])
     soup = BeautifulSoup(html.read(), "lxml")
 
-    links = soup.findAll("a")
+    #links = soup.findAll("a")
 
     # for link in links:
     #     if 'href' in link.attrs:
     #         print(link.get_text())
     #         print(link.attrs['href'])
+# .find("div", {"id":"content"})
 
-    for link in soup.find("div", {"class":"node-content"}):
+    # != "#main-content" or link.attrs['href'] != "#navigation_drawer"
+
+    for link in soup.findAll("a"):
         if 'href' in link.attrs:
             print(link.get_text())
             print(link.attrs['href'])
+            if "http" in link.attrs['href']:
+                r = requests.get(link.attrs['href'])
+                print(r.status_code)
 
 
 
