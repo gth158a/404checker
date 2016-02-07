@@ -2,8 +2,10 @@ import requests
 from urllib.request import urlopen
 from bs4 import BeautifulSoup, SoupStrainer
 
+site = "https://gradanalytics.georgetown.edu/"
+
 try:
-    html = urlopen("https://gradanalytics.georgetown.edu/")
+    html = urlopen(site)
 
 except HTTPError as e:
     print(e)
@@ -28,13 +30,18 @@ else:
 
     # != "#main-content" or link.attrs['href'] != "#navigation_drawer"
 
-    for link in soup.findAll("a"):
-        if 'href' in link.attrs:
-            print(link.get_text())
+    for link in soup.findAll("a", href=True):
+#        if 'href' in link.attrs:
+        print(link.get_text())
+        if "http" in link.attrs['href']:
             print(link.attrs['href'])
-            if "http" in link.attrs['href']:
-                r = requests.get(link.attrs['href'])
-                print(r.status_code)
+            r = requests.get(link.attrs['href'])
+            print(r.status_code)
+        if  link.attrs['href'][0] == "/":
+            print(site + link.attrs['href'])
+            r = requests.get(site + link.attrs['href'][1:])
+            print(r.status_code)
+
 
 
 
