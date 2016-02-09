@@ -1,73 +1,65 @@
 import requests
 from urllib.request import urlopen
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
+import HTML
 
-start = "http://analytics.ncsu.edu/"
-# "http://analytics.ncsu.edu/?page_id=1948"
-# "https://gradanalytics.georgetown.edu/"
-
-pages = set()  # pages collected in current site
-pagesError = set()  # url of pages with issues
-visitedPages = set()  # url of pages visited (promoted to site)
+start = ""
 
 
-def checklinks(site):
-    global visitedPages
-    global pages
-    global pagesError
+def generatereport(tdata):
+    # open an HTML file to show output in a browser
+    HTMLFILE = 'report.html'
+    f = open(HTMLFILE, 'w')
+
+
+    htmlcode = HTML.table(tdata,
+        header_row=['Status Code', 'Link Text', 'Address'])
+    #print(htmlcode)
+    f.write(htmlcode)
+    f.write('<p>')
+    #print('-'*79)
+    f.close()
+
+
+def checklinks(page):
+    results = []
 
     try:
-        html = urlopen(site)
+        html = urlopen(page)
 
     except HTTPError as e:
         print(e)
 
     else:
-        visitedPages.add(site)
-        soup = BeautifulSoup(html.read(), "lxml")
+        base = urlparse(page) # this could be handy in case of a relative link
 
-        links = soup.find("div", { "class" : "primary" }).findAll("a", href=True)
-        # numberlinks = len(links) # something that can be used for reporting later
-        # print(len(links))
+        soup = BeautifulSoup(html.read(), "lxml")
+        links = soup.find("div", { "id" : "content" }).findAll("a", href=True)
+        print("Number of links: " + str(len(links)))
 
         for link in links:
-            page = link.get_text().strip(' \t\n\r')
-
-            if "http" in link.attrs['href']:
-                address = link.attrs['href']
+            page_name = link.get_text().strip(' \t\n\r') # trims spaces of link description
+            q = urlparse(link.attrs['href'])
 
             # if internal link
-            elif  link.attrs['href'].startswith("/"):
-                address = site + link.attrs['href'][1:]
+            if  link.attrs['href'].startswith("../"):
+                # build absolute address
+                address = base.scheme + "://" + base.netloc + "/?" + q.query
 
+            #if external
             else:
-                address = link.attrs['href']
-
-
-            if address not in pages:
-                if address.startswith("mailto:"):
+                address = q.geturl()
+                if q.scheme == "mailto":
+                    # avoid checking status of mailto protocol
                     status = "null"
                 else:
-                    r = requests.get(address)
-                    status = r.status_code
-                pages.add(address)
-                print(str(status) + " - " + page + " - " + address)
-                if r.status_code != requests.codes.ok:
-                    pagesError.add(address)
-                else:
-                    print("address: " + address)
-                    print(len(visitedPages))
-                    print("visited pages: " + str(visitedPages))
-                    print("Pages Error: " + str(len(pagesError)))
-                    if address not in visitedPages:
-                        if address.startswith("http://analytics.ncsu.edu/") and not address.endswith(".pdf") and not address.endswith(".jpg"):
-                            checklinks(address)
+                    status = requests.get(address).status_code
+
+            results.append([str(status), page_name, address])
+            #print(str(status) + " - " + page + " - " + address)
+
+        generatereport(results)
+
 
 checklinks(start)
-
-
-
-
-
-
-    # print(soup.title)
