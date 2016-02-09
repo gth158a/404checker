@@ -4,9 +4,9 @@ import re
 from urllib.parse import urlparse
 
 #https://gradanalytics.georgetown.edu
-pages = set()
+links = set()
 def getLinks(pageUrl):
-    global pages
+    global links
     html = urlopen("http://analytics.ncsu.edu/?"+pageUrl)
     bsObj = BeautifulSoup(html, "lxml")
     # re.compile("^(/[a-z]*/)"))
@@ -26,8 +26,8 @@ def getLinks(pageUrl):
                 getLinks(newLink)
 
 getLinks("")
-print(len(pages))
-print(pages)
+print(len(links))
+print(links)
 
 #div.primary
 #using urlparse.urljoin() for this
