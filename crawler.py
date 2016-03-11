@@ -3,11 +3,11 @@ from bs4 import BeautifulSoup
 import re
 from urllib.parse import urlparse
 
-#https://gradanalytics.georgetown.edu
+
 links = set()
 def getLinks(pageUrl):
     global links
-    html = urlopen("http://analytics.ncsu.edu/?"+pageUrl)
+    html = urlopen(" "+pageUrl)
     bsObj = BeautifulSoup(html, "lxml")
     # re.compile("^(/[a-z]*/)"))
     for link in bsObj.findAll("a", href=True):
